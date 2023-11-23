@@ -70,7 +70,7 @@ class Government(Agent):
         super().__init__(unique_id, model)
 
     def step(self):
-        # The government agent doesn't perform any actions!.
+        # The government agent doesn't perform any actions!!.
         pass
 
-# More agent classes can be added here, e.g. for insurance agents!.
+# Moree agent classes can be added here, e.g. ! for insurance agents.
