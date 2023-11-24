@@ -1,4 +1,4 @@
-# Importing necessary libraries
+# !Importing necessary libraries
 import networkx as nx
 from mesa import Model, Agent
 from mesa.time import RandomActivation
