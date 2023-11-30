@@ -48,6 +48,9 @@ class Households(Agent):
         
         #calculate the actual flood damage given the actual flood depth. Flood damage is a factor between 0 and 1
         self.flood_damage_actual = calculate_basic_flood_damage(flood_depth=self.flood_depth_actual)
+
+        #Assigning random wealth to households between 0 and 100000
+        self.wealth = random.uniform(0, 100000)
     
     # Function to count friends who can be influencial.
     def count_friends(self, radius):
