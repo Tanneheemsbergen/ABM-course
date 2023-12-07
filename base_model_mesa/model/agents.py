@@ -3,6 +3,7 @@ import random
 from mesa import Agent
 from shapely.geometry import Point
 from shapely import contains_xy
+import pandas as pd
 
 # Import functions from functions.py
 from functions import generate_random_location_within_map_domain, get_flood_depth, calculate_basic_flood_damage
@@ -16,6 +17,13 @@ class Households(Agent):
     Each household has a flood depth attribute which is randomly assigned for demonstration purposes.
     In a real scenario, this would be based on actual geographical data or more complex logic.
     """
+
+     # Define available flood measures and their costs
+    flood_measures = {
+        'Sandbags': 300,
+        'Elevating the house': 80000,
+        'Relocating electrical systems': 5000
+    }
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
@@ -49,9 +57,47 @@ class Households(Agent):
         #calculate the actual flood damage given the actual flood depth. Flood damage is a factor between 0 and 1
         self.flood_damage_actual = calculate_basic_flood_damage(flood_depth=self.flood_depth_actual)
 
-        #Assigning random wealth to households between 0 and 100000
+         #Assigning random wealth to households between 0 and 100000
         self.wealth = random.uniform(0, 100000)
+
+        # Selecting a flood measure based on wealth
+        affordable_measures = {measure: cost for measure, cost in Households.flood_measures.items() if cost <= self.wealth}
+        if affordable_measures:
+            self.selected_measure = min(affordable_measures, key=affordable_measures.get)
+        else:
+            self.selected_measure = None
+
+        # Modify flood damage calculation based on selected measure
+        if self.selected_measure:
+            # Reduce estimated flood damage based on the measure
+            self.flood_damage_estimated *= self.calculate_damage_reduction_factor(self.selected_measure)
+        else:
+            # Use existing calculation
+            self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)
+
+    def calculate_damage_reduction_factor(self, measure):
+        # Define how different measures reduce flood damage
+        reduction_factors = {
+            'Sandbags': 0.05,  # Example reduction factor
+            'Elevating the house': 0.7,
+            'Relocating electrical systems': 0.3
+        }
+        return reduction_factors.get(measure, 1)  # Default to no reduction if measure is not found
     
+    def generate_households_table(model):
+    # Generates a table showing each household, their selected flood adaptation measure, and the resulting reduction factor.
+
+        household_data = []
+
+        for household in model.schedule.agents:
+            household_info = {
+                'Household ID': household.unique_id,
+                'Selected Measure': household.selected_measure if household.selected_measure else 'None',
+                'Reduction Factor': household.calculate_damage_reduction_factor(household.selected_measure)
+            }
+        household_data.append(household_info)
+        print(household_data)
+        return pd.DataFrame(household_data)
     # Function to count friends who can be influencial.
     def count_friends(self, radius):
         """Count the number of neighbors within a given radius (number of edges away). This is social relation and not spatial"""
