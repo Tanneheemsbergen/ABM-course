@@ -66,11 +66,14 @@ class Households(Agent):
             self.selected_measure = min(affordable_measures, key=affordable_measures.get)
         else:
             self.selected_measure = None
+        print('before:',self.flood_damage_estimated )
+        print(self.selected_measure)
 
         # Modify flood damage calculation based on selected measure
-        if self.selected_measure:
+        if self.selected_measure is not None:
             # Reduce estimated flood damage based on the measure
             self.flood_damage_estimated *= self.calculate_damage_reduction_factor(self.selected_measure)
+            print(self.flood_damage_estimated)
         else:
             # Use existing calculation
             self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)

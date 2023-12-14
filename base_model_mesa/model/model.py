@@ -92,7 +92,8 @@ class AdaptationModel(Model):
                         "location":"location",
                         "wealth":"wealth",
                         "selected_measure":"selected_measure",
-                        "reduction_factors":"reduction_factors"
+                        "reduction_factors":"reduction_factors",
+                        "household_info":"household_info"
                         }
         #set up the data collector 
         self.datacollector = DataCollector(model_reporters=model_metrics,agent_reporters=agent_metrics)
@@ -198,3 +199,9 @@ class AdaptationModel(Model):
         # Collect data and advance the model by one step
         self.datacollector.collect(self)
         self.schedule.step()
+
+
+model = AdaptationModel(number_of_households=50, flood_map_choice="harvey", network="watts_strogatz") # flood_map_choice can be "harvey", "100yr", or "500yr"
+
+for step in range(20):
+    model.step()
