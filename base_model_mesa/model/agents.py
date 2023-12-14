@@ -110,7 +110,16 @@ class Households(Agent):
     def step(self):
         # Logic for adaptation based on estimated flood damage and a random chance.
         # These conditions are examples and should be refined for real-world applications.
-        if self.flood_damage_estimated > 0.15 and random.random() < 0.2:
+          # Define a threshold for considering a household adapted
+        adaptation_threshold = 0.04  # Example: 5% reduction in estimated flood damage
+
+        # Check if a flood measure is selected and effective
+        if self.selected_measure:
+            damage_reduction = self.calculate_damage_reduction_factor(self.selected_measure)
+            if damage_reduction >= adaptation_threshold:
+                self.is_adapted = True
+        else:
+            self.flood_damage_estimated > 0.15 and random.random() < 0.2
             self.is_adapted = True  # Agent adapts to flooding
         
 # Define the Government agent class
