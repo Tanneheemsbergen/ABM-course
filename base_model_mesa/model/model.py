@@ -90,7 +90,9 @@ class AdaptationModel(Model):
                         "IsAdapted": "is_adapted",
                         "FriendsCount": lambda a: a.count_friends(radius=1),
                         "location":"location",
-                        # ... other reporters ...
+                        "wealth":"wealth",
+                        "selected_measure":"selected_measure",
+                        "reduction_factors":"reduction_factors"
                         }
         #set up the data collector 
         self.datacollector = DataCollector(model_reporters=model_metrics,agent_reporters=agent_metrics)
