@@ -47,6 +47,10 @@ class AdaptationModel(Model):
         
         super().__init__(seed = seed)
         
+        # Initialize a counter for each flood measure
+        self.flood_measure_count = {measure: 0 for measure in Households.flood_measures.keys()}
+        self.flood_measure_count[None] = 0  # To track when no measure is selected
+        
         # defining the variables and setting the values
         self.number_of_households = number_of_households  # Total number of household agents
         self.seed = seed
@@ -74,6 +78,7 @@ class AdaptationModel(Model):
             household = Households(unique_id=i, model=self)
             self.schedule.add(household)
             self.grid.place_agent(agent=household, node_id=node)
+
 
         # You might want to create other agents here, e.g. insurance agents.
 
