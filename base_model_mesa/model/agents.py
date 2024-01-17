@@ -20,9 +20,9 @@ class Households(Agent):
 
      # Define available flood measures and their costs
     flood_measures = {
-        'Sandbags': 300,
+        'Sandbags': 5000,
         'Elevating the house': 80000,
-        'Relocating electrical systems': 5000
+        'Relocating electrical systems': 25000
     }
 
     def __init__(self, unique_id, model):
@@ -142,7 +142,7 @@ class Government(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.subsidy_budget = 9000  # Total subsidy budget available
+        self.subsidy_budget = 40000 # Total subsidy budget available
 
     def support_non_adapted_households(self):
         # List to store non-adapted households
@@ -155,9 +155,9 @@ class Government(Agent):
         print("Total Non-adapted Households:", len(non_adapted_households))
 
         # Support households with subsidy
-        subsidy_amount = 300  # Amount of subsidy for each household
+        subsidy_amount = 4000  # Amount of subsidy for each household
         for household in non_adapted_households:
-            if household.wealth < 150 and self.subsidy_budget >= subsidy_amount:
+            if household.wealth < 1500 and self.subsidy_budget >= subsidy_amount:
                 household.wealth += subsidy_amount
                 self.subsidy_budget -= subsidy_amount
                 # Re-evaluate adaptation possibility after updating wealth
@@ -175,7 +175,7 @@ class Government(Agent):
         print("Updated Total Non-adapted Households:", updated_non_adapted_count)
 
     def re_evaluate_adaptation_possibility(self, household):
-        adaptation_threshold = 150  # Example threshold value
+        adaptation_threshold = 5000  # Example threshold value
         if household.wealth >= adaptation_threshold:
             household.is_adapted = True
             # Additional logic to handle adaptation can be added here
