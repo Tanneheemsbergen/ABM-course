@@ -126,13 +126,52 @@ class Households(Agent):
             self.flood_damage_estimated > 0.15 and random.random() < 0.2
             self.is_adapted = True  # Agent adapts to flooding
        # print(self.is_adapted))
+       
 # Define the Government agent class
 class Government(Agent):
     """
-    A government agent that currently doesn't perform any actions.
+    A government agent that have subsidy available
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
+        self.subsidy_budget = 9000  # Total subsidy budget available
+
+    def support_non_adapted_households(self):
+        # List to store non-adapted households
+        non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
+
+        # Print the list of non-adapted households
+        print("Non-adapted Households:", non_adapted_households)
+
+        # Print the sum of non-adapted households
+        print("Total Non-adapted Households:", len(non_adapted_households))
+
+        # Support households with subsidy
+        subsidy_amount = 300  # Amount of subsidy for each household
+        for household in non_adapted_households:
+            if household.wealth < 150 and self.subsidy_budget >= subsidy_amount:
+                household.wealth += subsidy_amount
+                self.subsidy_budget -= subsidy_amount
+                # Re-evaluate adaptation possibility after updating wealth
+                self.re_evaluate_adaptation_possibility(household)
+                if self.subsidy_budget < subsidy_amount:
+                    break  # Stop if the subsidy budget is depleted
+
+        # Print the remaining subsidy budget
+        print("Remaining Subsidy Budget:", self.subsidy_budget)
+
+        # Recalculate the sum of non-adapted households
+        updated_non_adapted_count = sum(1 for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted)
+        
+        # Print the updated sum
+        print("Updated Total Non-adapted Households:", updated_non_adapted_count)
+
+    def re_evaluate_adaptation_possibility(self, household):
+        adaptation_threshold = 150  # Example threshold value
+        if household.wealth >= adaptation_threshold:
+            household.is_adapted = True
+            # Additional logic to handle adaptation can be added here
+
 
     def step(self):
         # The government agent doesn't perform any actions!!.
