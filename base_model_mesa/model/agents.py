@@ -115,17 +115,18 @@ class Households(Agent):
         # Logic for adaptation based on estimated flood damage and a random chance.
         # These conditions are examples and should be refined for real-world applications.
           # Define a threshold for considering a household adapted
-        adaptation_threshold = 0.04  # Example: 5% reduction in estimated flood damage
+        minimum_damage_threshold = 0.1
+        adaptation_threshold = 0.15 # Example
 
-        # Check if a flood measure is selected and effective
-        if self.selected_measure:
-            damage_reduction = self.calculate_damage_reduction_factor(self.selected_measure)
-            if damage_reduction >= adaptation_threshold:
-                self.is_adapted = True
+        if self.flood_damage_estimated < minimum_damage_threshold:
+                self.is_adapted = True  # Agent adapts to flooding
         else:
-            self.flood_damage_estimated > 0.15 and random.random() < 0.2
-            self.is_adapted = True  # Agent adapts to flooding
-       # print(self.is_adapted))
+        # Check if a flood measure is selected and effective
+            if self.selected_measure:
+                damage_reduction = self.calculate_damage_reduction_factor(self.selected_measure)
+                if damage_reduction >= adaptation_threshold:
+                    self.is_adapted = True
+        print(self.is_adapted)
        
 # Define the Government agent class
 class Government(Agent):
