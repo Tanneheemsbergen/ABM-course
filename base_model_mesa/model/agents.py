@@ -70,6 +70,13 @@ class Households(Agent):
             self.selected_measure = max(affordable_measures, key=affordable_measures.get)
         else:
             self.selected_measure = None
+       
+        # Only increment the counter if selected_measure is not None
+        if self.selected_measure is not None:
+            self.model.flood_measure_count[self.selected_measure] += 1
+        else:
+            self.model.flood_measure_count[None] += 1
+            
         print('before:',self.flood_damage_estimated )
         print(self.selected_measure)
 
