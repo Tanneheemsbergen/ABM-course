@@ -63,7 +63,7 @@ class Households(Agent):
         self.risk_aversness = random.uniform(0, 1)
 
         self.adaptation_budget = self.wealth * self.risk_aversness
-        print(self.adaptation_budget)
+        print("Budget:",self.adaptation_budget)
         # Selecting a flood measure based on wealth
         affordable_measures = {measure: cost for measure, cost in Households.flood_measures.items() if cost <= self.adaptation_budget}
         if affordable_measures:
@@ -125,7 +125,7 @@ class Households(Agent):
         else:
             self.flood_damage_estimated > 0.15 and random.random() < 0.2
             self.is_adapted = True  # Agent adapts to flooding
-        print(self.is_adapted)
+       # print(self.is_adapted))
 # Define the Government agent class
 class Government(Agent):
     """
