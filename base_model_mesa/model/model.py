@@ -43,7 +43,6 @@ class AdaptationModel(Model):
                  number_of_edges = 3,
                  # number of nearest neighbours for WS social network
                  number_of_nearest_neighbours = 5,
-                 government_params = None
                  ):
         
         super().__init__(seed = seed)
@@ -75,10 +74,6 @@ class AdaptationModel(Model):
         self.schedule = RandomActivation(self)  # Schedule for activating agents
 
         # Create Government agent
-        if government_params is None:
-            government_params = {}  # Default parameters if none provided
-        self.government = Government(self.next_id(), self, 'budget')
-        self.schedule.add(self.government)
 
         # create households through initiating a household on each node of the network graph
         for i, node in enumerate(self.G.nodes()):
@@ -213,9 +208,7 @@ class AdaptationModel(Model):
         self.datacollector.collect(self)
         self.schedule.step()
 
-government_parameters = {'budget': 9000}
-
-model = AdaptationModel(number_of_households=50, flood_map_choice="harvey", network="watts_strogatz", government_params=government_parameters) # flood_map_choice can be "harvey", "100yr", or "500yr"
+model = AdaptationModel(number_of_households=50, flood_map_choice="harvey", network="watts_strogatz") # flood_map_choice can be "harvey", "100yr", or "500yr"
 
 for step in range(20):
     model.step()
