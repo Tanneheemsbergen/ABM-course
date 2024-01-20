@@ -158,16 +158,12 @@ class Government(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.subsidy_budget = 40000 # Total subsidy budget available
+        self.subsidy_budget = 20000 # Total subsidy budget available
 
     def step(self):
         # Check if the current step is a multiple of 4
         if self.model.schedule.steps % 4 == 0:
             self.support_non_adapted_households()
-    def re_evaluate_adaptation_possibility(self, household):
-        adaptation_threshold = 5000  # Example threshold value
-        if household.wealth >= adaptation_threshold:
-            household.is_adapted = True
 
     def support_non_adapted_households(self):
         if self.subsidy_budget <= 0:
