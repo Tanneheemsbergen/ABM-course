@@ -203,7 +203,32 @@ class AdaptationModel(Model):
                 agent.flood_depth_actual = random.uniform(0.5, 1.2) * agent.flood_depth_estimated
                 # calculate the actual flood damage given the actual flood depth
                 agent.flood_damage_actual = calculate_basic_flood_damage(agent.flood_depth_actual)
-        
+            
+        # Update each household's wealth by their income
+        for agent in self.schedule.agents:
+            if isinstance(agent, Households):  # Check if the agent is a Household
+                agent.wealth += agent.income  # Update the wealth
+
+            # If the household has not adapted, try selecting a new flood measure
+            if not agent.is_adapted:
+                # Recalculate adaptation budget based on updated wealth
+                agent.adaptation_budget = agent.wealth * agent.risk_aversness
+
+                # Select a flood measure if affordable
+                affordable_measures = {
+                    measure: cost for measure, cost in Households.flood_measures.items()
+                    if cost <= agent.adaptation_budget
+                }
+                if affordable_measures:
+                    agent.selected_measure = max(affordable_measures, key=affordable_measures.get)
+                else:
+                    agent.selected_measure = None
+
+                # Call the step method of each household agent to update adaptation status
+        for agent in self.schedule.agents:
+            if isinstance(agent, Households):
+                agent.step()  # This will call the step method defined in agents.py
+
         # Collect data and advance the model by one step
         self.datacollector.collect(self)
         self.schedule.step()

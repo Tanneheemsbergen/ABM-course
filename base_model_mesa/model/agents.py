@@ -29,6 +29,10 @@ class Households(Agent):
         super().__init__(unique_id, model)
         self.is_adapted = False  # Initial adaptation status set to False
         
+        #Assigning random starting wealth to households between 0 and 10000
+        self.wealth = random.uniform(0, 10000)
+        self.income = random.uniform(0,8000)
+
         # getting flood map values
         # Get a random location on the map
         loc_x, loc_y = generate_random_location_within_map_domain()
@@ -56,9 +60,6 @@ class Households(Agent):
         
         #calculate the actual flood damage given the actual flood depth. Flood damage is a factor between 0 and 1
         self.flood_damage_actual = calculate_basic_flood_damage(flood_depth=self.flood_depth_actual)
-
-         #Assigning random wealth to households between 0 and 100000
-        self.wealth = random.uniform(0, 100000)
 
         self.risk_aversness = random.uniform(0, 1)
 
@@ -121,7 +122,10 @@ class Households(Agent):
     def step(self):
         # Logic for adaptation based on estimated flood damage and a random chance.
         # These conditions are examples and should be refined for real-world applications.
-          # Define a threshold for considering a household adapted
+         # Re-evaluate adaptation status every step
+        self.is_adapted = False  # Reset adaptation status
+
+        # Define a threshold for considering a household adapted
         minimum_damage_threshold = 0.1
         adaptation_threshold = 0.15 # Example
 
