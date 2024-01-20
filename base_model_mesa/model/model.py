@@ -231,7 +231,7 @@ class AdaptationModel(Model):
 
                 # Call the step method of each household agent to update adaptation status
         for agent in self.schedule.agents:
-                agent.step()  # This will call the step method defined in agents.py
+            agent.step()  # This will call the step method defined in agents.py
 
         # Collect data and advance the model by one step
         self.datacollector.collect(self)
