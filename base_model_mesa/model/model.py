@@ -229,13 +229,15 @@ class AdaptationModel(Model):
                     else:
                         agent.selected_measure = None
 
+        self.schedule.step()
+
                 # Call the step method of each household agent to update adaptation status
-        for agent in self.schedule.agents:
-            agent.step()  # This will call the step method defined in agents.py
+        #for agent in self.schedule.agents:
+            #agent.step()  # This will call the step method defined in agents.py
 
         # Collect data and advance the model by one step
         self.datacollector.collect(self)
-        self.schedule.step()
+        
 
 model = AdaptationModel(number_of_households=50, flood_map_choice="harvey", network="watts_strogatz") # flood_map_choice can be "harvey", "100yr", or "500yr"
 

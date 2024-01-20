@@ -191,17 +191,17 @@ class Government(Agent):
         # Support households with subsidy
         subsidy_amount = 6000  # Amount of subsidy for each household
         count = 3
+
         for household in non_adapted_households:
             #print(f"Checking Household {household.unique_id} with wealth {household.wealth}")
+            if count <= 0: 
+                break
             if household.wealth < 10000 and self.subsidy_budget >= subsidy_amount:
                 print(f"Subsidy given to Household {household.unique_id}")
                 household.receive_subsidy(subsidy_amount)
                 self.subsidy_budget -= subsidy_amount
                 count -= 1 
-                if count == 0: 
-                    break
-                elif self.subsidy_budget <= 0:
-                    break  # Exit the loop if the subsidy budget is depleted
+              
 
         # Print the remaining subsidy budget
         print("Remaining Subsidy Budget:", self.subsidy_budget)
