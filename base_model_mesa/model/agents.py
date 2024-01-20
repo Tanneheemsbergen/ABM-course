@@ -90,6 +90,21 @@ class Households(Agent):
             # Use existing calculation
             self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)
 
+    def receive_subsidy(self, subsidy_amount):
+        """
+        Method to receive a subsidy and update the household's attributes accordingly.
+        :param subsidy_amount: The amount of subsidy received.
+        """
+
+        # Increase the household's wealth by the subsidy amount
+        self.wealth += subsidy_amount
+        self.re_evaluate_adaptation()
+        
+    def re_evaluate_adaptation(self):
+        adaptation_threshold = 5000  # Define an appropriate threshold
+        if self.wealth >= adaptation_threshold and not self.is_adapted:
+            self.is_adapted = True
+
     def calculate_damage_reduction_factor(self, measure):
         # Define how different measures reduce flood damage
         reduction_factors = {
@@ -99,20 +114,21 @@ class Households(Agent):
         }
         return reduction_factors.get(measure, 1)  # Default to no reduction if measure is not found
     
-    def generate_households_table(model):
+    #def generate_households_table(model):
     # Generates a table showing each household, their selected flood adaptation measure, and the resulting reduction factor.
 
-        household_data = []
+    #  household_data = []
 
-        for household in model.schedule.agents:
-            household_info = {
-                'Household ID': household.unique_id,
-                'Selected Measure': household.selected_measure if household.selected_measure else 'None',
-                'Reduction Factor': household.calculate_damage_reduction_factor(household.selected_measure)
-            }
-        household_data.append(household_info)
-        print(household_data)
-        return pd.DataFrame(household_data)
+    #  for household in model.schedule.agents:
+    #       household_info = {
+    #          'Household ID': household.unique_id,
+    ##          'Selected Measure': household.selected_measure if household.selected_measure else 'None',
+    #          'Reduction Factor': household.calculate_damage_reduction_factor(household.selected_measure)
+    #     }
+    # household_data.append(household_info)
+    # print(household_data)
+    # return pd.DataFrame(household_data)
+
     # Function to count friends who can be influencial.
     def count_friends(self, radius):
         """Count the number of neighbors within a given radius (number of edges away). This is social relation and not spatial"""
@@ -146,9 +162,16 @@ class Government(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.subsidy_budget = 40000 # Total subsidy budget available
+        self.subsidy_budget = 20000 # Total subsidy budget available
+
+    def step(self):
+        # Check if the current step is a multiple of 4
+        if self.model.schedule.steps % 4 == 0:
+            self.support_non_adapted_households()
 
     def support_non_adapted_households(self):
+        if self.subsidy_budget <= 0:
+            return  # Exit if no subsidy budget is left
         # List to store non-adapted households
         non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
 
@@ -161,13 +184,11 @@ class Government(Agent):
         # Support households with subsidy
         subsidy_amount = 4000  # Amount of subsidy for each household
         for household in non_adapted_households:
-            if household.wealth < 1500 and self.subsidy_budget >= subsidy_amount:
-                household.wealth += subsidy_amount
+            if household.wealth < 3000 and self.subsidy_budget >= subsidy_amount:
+                household.receive_subsidy(subsidy_amount)
                 self.subsidy_budget -= subsidy_amount
-                # Re-evaluate adaptation possibility after updating wealth
-                self.re_evaluate_adaptation_possibility(household)
-                if self.subsidy_budget < subsidy_amount:
-                    break  # Stop if the subsidy budget is depleted
+                if self.subsidy_budget <= 0:
+                    break  # Exit the loop if the subsidy budget is depleted
 
         # Print the remaining subsidy budget
         print("Remaining Subsidy Budget:", self.subsidy_budget)
@@ -177,16 +198,5 @@ class Government(Agent):
         
         # Print the updated sum
         print("Updated Total Non-adapted Households:", updated_non_adapted_count)
-
-    def re_evaluate_adaptation_possibility(self, household):
-        adaptation_threshold = 5000  # Example threshold value
-        if household.wealth >= adaptation_threshold:
-            household.is_adapted = True
-            # Additional logic to handle adaptation can be added here
-
-
-    def step(self):
-        # The government agent doesn't perform any actions!!.
-        pass
 
 # More agent classes can be added here, e.g. ! for insurance agents.
