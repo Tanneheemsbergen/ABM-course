@@ -104,6 +104,7 @@ class Households(Agent):
         adaptation_threshold = 5000  # Define an appropriate threshold
         if self.wealth >= adaptation_threshold and not self.is_adapted:
             self.is_adapted = True
+            print(f"Household {self.unique_id} adapted at step {self.model.schedule.steps}")
 
     def calculate_damage_reduction_factor(self, measure):
         # Define how different measures reduce flood damage
