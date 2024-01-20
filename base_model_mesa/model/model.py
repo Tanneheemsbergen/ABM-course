@@ -81,6 +81,9 @@ class AdaptationModel(Model):
             self.schedule.add(household)
             self.grid.place_agent(agent=household, node_id=node)
 
+        self.government = Government(unique_id="gov_1", model=self)
+        self.schedule.add(self.government)
+
 
         # You might want to create other agents here, e.g. insurance agents.
 
@@ -96,7 +99,7 @@ class AdaptationModel(Model):
                         "FloodDepthActual": "flood_depth_actual",
                         "FloodDamageActual" : "flood_damage_actual",
                         "IsAdapted": "is_adapted",
-                        "FriendsCount": lambda a: a.count_friends(radius=1),
+                        "FriendsCount": lambda a: a.count_friends(radius=1) if isinstance(a, Households) else None,
                         "location":"location",
                         "wealth":"wealth",
                         "selected_measure":"selected_measure",
@@ -173,9 +176,10 @@ class AdaptationModel(Model):
 
         # Collect agent locations and statuses
         for agent in self.schedule.agents:
-            color = 'blue' if agent.is_adapted else 'red'
-            ax.scatter(agent.location.x, agent.location.y, color=color, s=10, label=color.capitalize() if not ax.collections else "")
-            ax.annotate(str(agent.unique_id), (agent.location.x, agent.location.y), textcoords="offset points", xytext=(0,1), ha='center', fontsize=9)
+            if isinstance(agent, Households):
+                color = 'blue' if agent.is_adapted else 'red'
+                ax.scatter(agent.location.x, agent.location.y, color=color, s=10, label=color.capitalize() if not ax.collections else "")
+                ax.annotate(str(agent.unique_id), (agent.location.x, agent.location.y), textcoords="offset points", xytext=(0,1), ha='center', fontsize=9)
         # Create legend with unique entries
         handles, labels = ax.get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
@@ -199,34 +203,34 @@ class AdaptationModel(Model):
         """
         if self.schedule.steps == 5:
             for agent in self.schedule.agents:
-                # Calculate the actual flood depth as a random number between 0.5 and 1.2 times the estimated flood depth
-                agent.flood_depth_actual = random.uniform(0.5, 1.2) * agent.flood_depth_estimated
-                # calculate the actual flood damage given the actual flood depth
-                agent.flood_damage_actual = calculate_basic_flood_damage(agent.flood_depth_actual)
+                if isinstance(agent, Households):
+                    # Calculate the actual flood depth as a random number between 0.5 and 1.2 times the estimated flood depth
+                    agent.flood_depth_actual = random.uniform(0.5, 1.2) * agent.flood_depth_estimated
+                    # calculate the actual flood damage given the actual flood depth
+                    agent.flood_damage_actual = calculate_basic_flood_damage(agent.flood_depth_actual)
             
         # Update each household's wealth by their income
         for agent in self.schedule.agents:
             if isinstance(agent, Households):  # Check if the agent is a Household
                 agent.wealth += agent.income  # Update the wealth
 
-            # If the household has not adapted, try selecting a new flood measure
-            if not agent.is_adapted:
-                # Recalculate adaptation budget based on updated wealth
-                agent.adaptation_budget = agent.wealth * agent.risk_aversness
+                # If the household has not adapted, try selecting a new flood measure
+                if not agent.is_adapted:
+                    # Recalculate adaptation budget based on updated wealth
+                    agent.adaptation_budget = agent.wealth * agent.risk_aversness
 
-                # Select a flood measure if affordable
-                affordable_measures = {
-                    measure: cost for measure, cost in Households.flood_measures.items()
-                    if cost <= agent.adaptation_budget
-                }
-                if affordable_measures:
-                    agent.selected_measure = max(affordable_measures, key=affordable_measures.get)
-                else:
-                    agent.selected_measure = None
+                    # Select a flood measure if affordable
+                    affordable_measures = {
+                        measure: cost for measure, cost in Households.flood_measures.items()
+                        if cost <= agent.adaptation_budget
+                    }
+                    if affordable_measures:
+                        agent.selected_measure = max(affordable_measures, key=affordable_measures.get)
+                    else:
+                        agent.selected_measure = None
 
                 # Call the step method of each household agent to update adaptation status
         for agent in self.schedule.agents:
-            if isinstance(agent, Households):
                 agent.step()  # This will call the step method defined in agents.py
 
         # Collect data and advance the model by one step
