@@ -165,7 +165,7 @@ class Government(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.subsidy_budget = 20000 # Total subsidy budget available
+        self.subsidy_budget = 200000 # Total subsidy budget available
 
 
     def step(self):
@@ -176,35 +176,39 @@ class Government(Agent):
 
     def support_non_adapted_households(self):
       
-            print("Supporting non-adapted households.")  # Debug print
-            if self.subsidy_budget <= 0:
-                return  # Exit if no subsidy budget is left
-            # List to store non-adapted households
-            non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
+        print("Supporting non-adapted households.")  # Debug print
+        if self.subsidy_budget <= 0:
+            return  # Exit if no subsidy budget is left
+        # List to store non-adapted households
+        non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
 
-            # Print the list of non-adapted households
-            print("Non-adapted Households:", non_adapted_households)
+        # Print the list of non-adapted households
+        print("Non-adapted Households:", non_adapted_households)
 
-            # Print the sum of non-adapted households
-            print("Total Non-adapted Households:", len(non_adapted_households))
+        # Print the sum of non-adapted households
+        print("Total Non-adapted Households:", len(non_adapted_households))
 
-            # Support households with subsidy
-            subsidy_amount = 6000  # Amount of subsidy for each household
-            for household in non_adapted_households:
-                if household.wealth < 100000 and self.subsidy_budget >= subsidy_amount:
-                    print(f"Subsidy given to Household {household.unique_id}")
-                    household.receive_subsidy(subsidy_amount)
-                    self.subsidy_budget -= subsidy_amount
-                    if self.subsidy_budget <= 0:
-                        break  # Exit the loop if the subsidy budget is depleted
+        # Support households with subsidy
+        subsidy_amount = 6000  # Amount of subsidy for each household
+        count=3
+        for household in non_adapted_households:
+            if household.wealth < 2000 and self.subsidy_budget >= subsidy_amount:
+                print(f"Subsidy given to Household {household.unique_id}")
+                household.receive_subsidy(subsidy_amount)
+                self.subsidy_budget -= subsidy_amount
+                count-=1
+                if count == 0: 
+                    return
+                elif self.subsidy_budget <= 0:
+                    break  # Exit the loop if the subsidy budget is depleted
 
-            # Print the remaining subsidy budget
-            print("Remaining Subsidy Budget:", self.subsidy_budget)
+        # Print the remaining subsidy budget
+        print("Remaining Subsidy Budget:", self.subsidy_budget)
 
-            # Recalculate the sum of non-adapted households
-            updated_non_adapted_count = sum(1 for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted)
+        # Recalculate the sum of non-adapted households
+        updated_non_adapted_count = sum(1 for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted)
         
-            # Print the updated sum
-            print("Updated Total Non-adapted Households:", updated_non_adapted_count)
+        # Print the updated sum
+        print("Updated Total Non-adapted Households:", updated_non_adapted_count)
 
 # More agent classes can be added here, e.g. ! for insurance agents.
