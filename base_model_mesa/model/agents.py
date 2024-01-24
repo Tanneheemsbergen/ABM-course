@@ -31,7 +31,7 @@ class Households(Agent):
         
         #Assigning random starting wealth to households between 0 and 10000
         self.wealth = random.uniform(0, 10000)
-        self.income = random.uniform(0,8000)
+        self.income = random.uniform(0,300)
 
         # getting flood map values
         # Get a random location on the map
