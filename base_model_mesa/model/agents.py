@@ -137,6 +137,8 @@ class Households(Agent):
         """Count the number of neighbors within a given radius (number of edges away). This is social relation and not spatial"""
         friends = self.model.grid.get_neighborhood(self.pos, include_center=False, radius=radius)
         return len(friends)
+    
+
 
     def step(self):
         # Logic for adaptation based on estimated flood damage and a random chance.
@@ -167,8 +169,29 @@ class Government(Agent):
         super().__init__(unique_id, model)
         self.subsidy_budget = 200000 # Total subsidy budget available
 
+    def protesting(self,):
+
+        non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
+        friends = household.count_friends
+        collaboration = False
+
+        for household in non_adapted_households:
+            if friends <= 0:
+                return 
+            if friends >= 0:
+                collaboration = True
+                return collaboration
+            print("Household collaboration is", collaboration)
+
+    def protesting_subsidy(self):
+        if self.protesting is True:
+            self.subsidy_budget *= 2
+            return self.subsidy_budget
+        print("subsidy doubled")
+
 
     def step(self):
+        self.protesting_subsidy()
         # Check if the current step is a multiple of 4
         if self.model.schedule.steps % 4 == 0:
             print("Government step method called.")  # Debug print
