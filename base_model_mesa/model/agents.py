@@ -22,8 +22,10 @@ class Households(Agent):
     flood_measures = {
         'Sandbags': 5000,
         'Elevating the house': 80000,
-        'Relocating electrical systems': 25000
+        'Relocating electrical systems': 25000,
+        'Collaborative project': 1000000
     }
+    
 
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
@@ -42,6 +44,9 @@ class Households(Agent):
         self.in_floodplain = False
         if contains_xy(geom=floodplain_multipolygon, x=self.location.x, y=self.location.y):
             self.in_floodplain = True
+
+        #list of neighbouring households
+        self.neighbours = []
 
         # Get the estimated flood depth at those coordinates. 
         # the estimated flood depth is calculated based on the flood map (i.e., past data) so this is not the actual flood depth
@@ -113,24 +118,11 @@ class Households(Agent):
         reduction_factors = {
             'Sandbags': 0.05,  # Example reduction factor
             'Elevating the house': 0.7,
-            'Relocating electrical systems': 0.3
+            'Relocating electrical systems': 0.3,
+            'Collaborative project': 0.8
         }
         return reduction_factors.get(measure, 1)  # Default to no reduction if measure is not found
-    
-    #def generate_households_table(model):
-    # Generates a table showing each household, their selected flood adaptation measure, and the resulting reduction factor.
 
-    #  household_data = []
-
-    #  for household in model.schedule.agents:
-    #       household_info = {
-    #          'Household ID': household.unique_id,
-    ##          'Selected Measure': household.selected_measure if household.selected_measure else 'None',
-    #          'Reduction Factor': household.calculate_damage_reduction_factor(household.selected_measure)
-    #     }
-    # household_data.append(household_info)
-    # print(household_data)
-    # return pd.DataFrame(household_data)
 
     # Function to count friends who can be influencial.
     def count_friends(self, radius):
@@ -139,13 +131,41 @@ class Households(Agent):
         return len(friends)
     
 
+    def add_neighbour(self, neighbour_agent):
+        if neighbour_agent not in self.neighbours:
+            self.neighbours.append(neighbour_agent)
+
+    def collaborate_on_adaptation(self):
+        """Collaborate with neighbours on flood adaptation measures."""
+        print(f"Household {self.unique_id} checking collaboration, Neighbours: {len(self.neighbours)}")
+        total_wealth = self.wealth
+        for neighbour in self.neighbours:
+            # Calculate combined wealth for cost-sharing
+            total_wealth += neighbour.wealth
+            print(f"Neighbour {neighbour.unique_id} wealth: {neighbour.wealth}")
+
+        print(f"Total combined wealth for Household {self.unique_id}: {total_wealth}")
+        
+        # Example: Jointly decide to elevate homes if combined wealth is high
+        if total_wealth > 50000:
+            print(f"Household {self.unique_id} starting collaboration")
+            for neighbour in self.neighbours:
+                neighbour.selected_measure = 'Collaborative project'
+                neighbour.update_collaboration_status()
+
+    def update_collaboration_status(self):
+        print(f"Household {self.unique_id} updating collaboration status")
+        if self.selected_measure == 'Collaborative project':
+            self.is_adapted = True
+            print(f"Household {self.unique_id} collaborated at step {self.model.schedule.steps}")
+
 
     def step(self):
         # Logic for adaptation based on estimated flood damage and a random chance.
         # These conditions are examples and should be refined for real-world applications.
          # Re-evaluate adaptation status every step
         #self.is_adapted = False  # Reset adaptation status
-
+        self.collaborate_on_adaptation()
         # Define a threshold for considering a household adapted
         minimum_damage_threshold = 0.1
         adaptation_threshold = 0.15 # Example
@@ -182,16 +202,16 @@ class Government(Agent):
                 collaboration = True
                 return collaboration
             print("Household collaboration is", collaboration)
-
+        """""
     def protesting_subsidy(self):
         if self.protesting is True:
             self.subsidy_budget *= 2
             return self.subsidy_budget
         print("subsidy doubled")
-
+        """""
 
     def step(self):
-        self.protesting_subsidy()
+        #self.protesting_subsidy()
         # Check if the current step is a multiple of 4
         if self.model.schedule.steps % 4 == 0:
             print("Government step method called.")  # Debug print

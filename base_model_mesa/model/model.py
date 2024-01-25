@@ -84,6 +84,7 @@ class AdaptationModel(Model):
         self.government = Government(unique_id="gov_1", model=self)
         self.schedule.add(self.government)
 
+        self.assign_neighbours_to_households()
 
         # You might want to create other agents here, e.g. insurance agents.
 
@@ -160,6 +161,14 @@ class AdaptationModel(Model):
         self.flood_map = rs.open(flood_map_path)
         self.band_flood_img, self.bound_left, self.bound_right, self.bound_top, self.bound_bottom = get_flood_map_data(
             self.flood_map)
+        
+    def assign_neighbours_to_households(self):
+        for node in self.G.nodes():
+            household = self.grid.get_cell_list_contents([node])[0]
+            neighbors_nodes = self.G.neighbors(node)
+            for neighbor_node in neighbors_nodes:
+                neighbor_agent = self.grid.get_cell_list_contents([neighbor_node])[0]
+                household.add_neighbour(neighbor_agent)
 
     def total_adapted_households(self):
         """Return the total number of households that have adapted."""
