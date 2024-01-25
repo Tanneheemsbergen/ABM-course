@@ -156,7 +156,7 @@ class Households(Agent):
     def update_collaboration_status(self):
         print(f"Household {self.unique_id} updating collaboration status")
         if self.selected_measure == 'Collaborative project':
-            self.is_adapted = True
+            self.flood_damage_estimated -= 0.8
             print(f"Household {self.unique_id} collaborated at step {self.model.schedule.steps}")
 
 
