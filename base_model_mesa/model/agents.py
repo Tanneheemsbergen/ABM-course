@@ -106,7 +106,6 @@ class Households(Agent):
         print(f"Household {self.unique_id} received subsidy. New wealth: {self.wealth}")
         self.re_evaluate_adaptation()
        
-
     def re_evaluate_adaptation(self):
         adaptation_threshold = 5000  # Define an appropriate threshold
         if self.wealth >= adaptation_threshold and not self.is_adapted:
@@ -178,7 +177,7 @@ class Households(Agent):
                 damage_reduction = self.calculate_damage_reduction_factor(self.selected_measure)
                 if damage_reduction >= adaptation_threshold:
                     self.is_adapted = True
-        print(self.is_adapted)
+        # print(self.is_adapted)
        
 # Define the Government agent class
 class Government(Agent):
