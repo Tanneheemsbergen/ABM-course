@@ -17,12 +17,16 @@ class Households(Agent):
     Each household has a flood depth attribute which is randomly assigned for demonstration purposes.
     In a real scenario, this would be based on actual geographical data or more complex logic.
     """
+    total_sandbags_purchased = 0
+    SAND_BAG_LIMIT = 15
+    #total_electricity_purchased = 0
+    #electricity_limit = 15
 
      # Define available flood measures and their costs
     flood_measures = {
-        'Sandbags': 5000,
-        'Elevating the house': 80000,
-        'Relocating electrical systems': 25000,
+        'Sandbags': 15000,
+        'Elevating the house': 19000,
+        'Relocating electrical systems': 17000,
         'Collaborative project': 1000000
     }
     
@@ -33,7 +37,7 @@ class Households(Agent):
         
         #Assigning random starting wealth to households between 0 and 10000
         self.wealth = random.uniform(0, 10000)
-        self.income = random.uniform(0,300)
+        self.income = random.uniform(0,3000)
 
         # getting flood map values
         # Get a random location on the map
@@ -58,6 +62,8 @@ class Households(Agent):
         
         # calculate the estimated flood damage given the estimated flood depth. Flood damage is a factor between 0 and 1
         self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)
+        if self.flood_damage_estimated <= 0:
+            self.flood_damage_estimated = 0
 
         # Add an attribute for the actual flood depth. This is set to zero at the beginning of the simulation since there is not flood yet
         # and will update its value when there is a shock (i.e., actual flood). Shock happens at some point during the simulation
@@ -66,34 +72,49 @@ class Households(Agent):
         #calculate the actual flood damage given the actual flood depth. Flood damage is a factor between 0 and 1
         self.flood_damage_actual = calculate_basic_flood_damage(flood_depth=self.flood_depth_actual)
 
-        self.risk_aversness = random.uniform(0, 1)
+        self.risk_aversness = random.uniform(0.5, 1)
 
-        self.adaptation_budget = self.wealth * self.risk_aversness
-        print("Budget:",self.adaptation_budget)
-        # Selecting a flood measure based on wealth
-        affordable_measures = {measure: cost for measure, cost in Households.flood_measures.items() if cost <= self.adaptation_budget}
-        if affordable_measures:
-            self.selected_measure = max(affordable_measures, key=affordable_measures.get)
+    def select_flood_measure(self):
+        if self.is_adapted == True:
+            return
         else:
-            self.selected_measure = None
+            self.adaptation_budget = self.wealth * self.risk_aversness
+            print("Budget:",self.adaptation_budget)
+            # Selecting a flood measure based on wealth
+            affordable_measures = {measure: cost for measure, cost in Households.flood_measures.items() if cost <= self.adaptation_budget}
+            if Households.total_sandbags_purchased >= Households.SAND_BAG_LIMIT and 'Sandbags' in affordable_measures:
+                del affordable_measures['Sandbags']
+                print(f"Household {self.unique_id} Sandbag limit reached. Excluding sandbags.")
+            if affordable_measures:
+                self.selected_measure = sorted(affordable_measures, key=affordable_measures.get, reverse=True)[0]
+            else:
+                self.selected_measure = None
        
         # Only increment the counter if selected_measure is not None
-        if self.selected_measure is not None:
-            self.model.flood_measure_count[self.selected_measure] += 1
-        else:
-            self.model.flood_measure_count[None] += 1
+            if self.selected_measure is not None:
+                self.model.flood_measure_count[self.selected_measure] += 1
+                if self.selected_measure == 'Sandbags':
+                    Households.total_sandbags_purchased += 1 
+                    print("total sandbags jj", Households.total_sandbags_purchased)
+            else:
+                self.model.flood_measure_count[None] += 1
             
-        print('before:',self.flood_damage_estimated )
-        print(self.selected_measure)
+            print('before:',self.flood_damage_estimated )
+            print(self.selected_measure)
 
-        # Modify flood damage calculation based on selected measure
-        if self.selected_measure is not None:
-            # Reduce estimated flood damage based on the measure
-            self.flood_damage_estimated *= self.calculate_damage_reduction_factor(self.selected_measure)
-            print(self.flood_damage_estimated)
-        else:
-            # Use existing calculation
-            self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)
+            # Modify flood damage calculation based on selected measure
+            if self.selected_measure is not None:
+                # Reduce estimated flood damage based on the measure
+                self.flood_damage_estimated -= self.calculate_damage_reduction_factor(self.selected_measure)
+                if self.flood_damage_estimated < 0:
+                    self.flood_damage_estimated = 0
+                print(self.flood_damage_estimated)
+            else:
+                # Use existing calculation
+                self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)
+
+
+    
 
     def receive_subsidy(self, subsidy_amount):
         """
@@ -102,15 +123,17 @@ class Households(Agent):
         """
 
         #Increase the household's wealth by the subsidy amount
-        self.wealth += subsidy_amount
-        print(f"Household {self.unique_id} received subsidy. New wealth: {self.wealth}")
-        self.re_evaluate_adaptation()
-       
+        self.adaptation_budget += subsidy_amount
+        print(f"Household {self.unique_id} received subsidy. New budget: {self.adaptation_budget}")
+        self.select_flood_measure()
+        print(f"Household {self.unique_id} adapted at step {self.model.schedule.steps}")
+
+    '''''
     def re_evaluate_adaptation(self):
-        adaptation_threshold = 5000  # Define an appropriate threshold
+        adaptation_threshold = 500000  # Define an appropriate threshold
         if self.wealth >= adaptation_threshold and not self.is_adapted:
             self.is_adapted = True
-            print(f"Household {self.unique_id} adapted at step {self.model.schedule.steps}")
+    '''
 
     def calculate_damage_reduction_factor(self, measure):
         # Define how different measures reduce flood damage
@@ -136,26 +159,37 @@ class Households(Agent):
 
     def collaborate_on_adaptation(self):
         """Collaborate with neighbours on flood adaptation measures."""
-        print(f"Household {self.unique_id} checking collaboration, Neighbours: {len(self.neighbours)}")
+        #print(f"Household {self.unique_id} checking collaboration, Neighbours: {len(self.neighbours)}")
+        collaborated_households = 0
+
         total_wealth = self.wealth
-        for neighbour in self.neighbours:
-            # Calculate combined wealth for cost-sharing
-            total_wealth += neighbour.wealth
-            print(f"Neighbour {neighbour.unique_id} wealth: {neighbour.wealth}")
+        if self.is_adapted == True:
+            return
+        else:
+            for neighbour in self.neighbours:
+                # Calculate combined wealth for cost-sharing
+                total_wealth += neighbour.wealth
+                #print(f"Neighbour {neighbour.unique_id} wealth: {neighbour.wealth}")
 
         print(f"Total combined wealth for Household {self.unique_id}: {total_wealth}")
         
         # Example: Jointly decide to elevate homes if combined wealth is high
-        if total_wealth > 50000:
-            print(f"Household {self.unique_id} starting collaboration")
+        if total_wealth > 200000:
+            #print(f"Household {self.unique_id} starting collaboration")
             for neighbour in self.neighbours:
-                neighbour.selected_measure = 'Collaborative project'
+                if neighbour.selected_measure == 'Collaborative project':
+                    break
+                else: neighbour.selected_measure = 'Collaborative project'
+                collaborated_households += 1
                 neighbour.update_collaboration_status()
+        print("Collaborated Households:", collaborated_households) 
 
     def update_collaboration_status(self):
-        print(f"Household {self.unique_id} updating collaboration status")
+        #print(f"Household {self.unique_id} updating collaboration status")
         if self.selected_measure == 'Collaborative project':
             self.flood_damage_estimated -= 0.8
+            if self.flood_damage_estimated < 0:
+                self.flood_damage_estimated = 0
             print(f"Household {self.unique_id} collaborated at step {self.model.schedule.steps}")
 
 
@@ -165,20 +199,23 @@ class Households(Agent):
          # Re-evaluate adaptation status every step
         #self.is_adapted = False  # Reset adaptation status
         self.collaborate_on_adaptation()
+        self.select_flood_measure()
         # Define a threshold for considering a household adapted
         minimum_damage_threshold = 0.1
         adaptation_threshold = 0.15 # Example
 
         if self.flood_damage_estimated < minimum_damage_threshold:
                 self.is_adapted = True  # Agent adapts to flooding
+
         else:
         # Check if a flood measure is selected and effective
             if self.selected_measure:
                 damage_reduction = self.calculate_damage_reduction_factor(self.selected_measure)
-                if damage_reduction >= adaptation_threshold:
-                    self.is_adapted = True
+                #if damage_reduction >= adaptation_threshold:
+                self.is_adapted = True
         # print(self.is_adapted)
-       
+
+   
 # Define the Government agent class
 class Government(Agent):
     """
@@ -186,7 +223,7 @@ class Government(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.subsidy_budget = 200000 # Total subsidy budget available
+        self.subsidy_budget = 0 # Total subsidy budget available
 
     def protesting(self,):
 
@@ -212,10 +249,10 @@ class Government(Agent):
     def step(self):
         #self.protesting_subsidy()
         # Check if the current step is a multiple of 4
-        if self.model.schedule.steps % 4 == 0:
+        if self.model.schedule.steps % 4 == 0 and self.model.schedule.steps is not 0:
             print("Government step method called.")  # Debug print
             self.support_non_adapted_households()
-
+        
     def support_non_adapted_households(self):
       
         print("Supporting non-adapted households.")  # Debug print
@@ -231,7 +268,7 @@ class Government(Agent):
         print("Total Non-adapted Households:", len(non_adapted_households))
 
         # Support households with subsidy
-        subsidy_amount = 6000  # Amount of subsidy for each household
+        subsidy_amount = 25000  # Amount of subsidy for each household
         count = 3
 
         for household in non_adapted_households:
