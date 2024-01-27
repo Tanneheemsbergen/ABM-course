@@ -268,7 +268,7 @@ class Government(Agent):
         print("Total Non-adapted Households:", len(non_adapted_households))
 
         # Support households with subsidy
-        subsidy_amount = 25000  # Amount of subsidy for each household
+        subsidy_amount = 15000  # Amount of subsidy for each household
         count = 3
 
         for household in non_adapted_households:
