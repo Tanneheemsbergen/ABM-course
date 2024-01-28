@@ -21,6 +21,7 @@ class Households(Agent):
     SAND_BAG_LIMIT = 15
     #total_electricity_purchased = 0
     #electricity_limit = 15
+    total_collaborated_households = 0
 
      # Define available flood measures and their costs
     flood_measures = {
@@ -51,7 +52,6 @@ class Households(Agent):
 
         #list of neighbouring households
         self.neighbours = []
-
         # Get the estimated flood depth at those coordinates. 
         # the estimated flood depth is calculated based on the flood map (i.e., past data) so this is not the actual flood depth
         # Flood depth can be negative if the location is at a high elevation
@@ -174,13 +174,14 @@ class Households(Agent):
         print(f"Total combined wealth for Household {self.unique_id}: {total_wealth}")
         
         # Example: Jointly decide to elevate homes if combined wealth is high
-        if total_wealth > 200000:
+        if total_wealth > 180000:
             #print(f"Household {self.unique_id} starting collaboration")
             for neighbour in self.neighbours:
                 if neighbour.selected_measure == 'Collaborative project':
                     break
                 else: neighbour.selected_measure = 'Collaborative project'
                 collaborated_households += 1
+                self.total_collaborated_households += collaborated_households
                 neighbour.update_collaboration_status()
         print("Collaborated Households:", collaborated_households) 
 

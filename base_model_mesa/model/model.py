@@ -240,9 +240,11 @@ class AdaptationModel(Model):
 
         self.schedule.step()
 
-                # Call the step method of each household agent to update adaptation status
-        #for agent in self.schedule.agents:
-            #agent.step()  # This will call the step method defined in agents.py
+        # Calculate the total number of collaborated households
+        total_collaborated_households = sum(agent.total_collaborated_households for agent in self.schedule.agents if isinstance(agent, Households))
+
+        # Print the total number of collaborated households for this step
+        print("Total collaborated households at step", self.schedule.steps, "is", total_collaborated_households)
 
         # Collect data and advance the model by one step
         self.datacollector.collect(self)
