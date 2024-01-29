@@ -242,7 +242,6 @@ class AdaptationModel(Model):
 
         # Calculate the total number of collaborated households
         total_collaborated_households = sum(agent.total_collaborated_households for agent in self.schedule.agents if isinstance(agent, Households))
-
         # Print the total number of collaborated households for this step
         print("Total collaborated households at step", self.schedule.steps, "is", total_collaborated_households)
 

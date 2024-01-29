@@ -174,7 +174,7 @@ class Households(Agent):
         print(f"Total combined wealth for Household {self.unique_id}: {total_wealth}")
         
         # Example: Jointly decide to elevate homes if combined wealth is high
-        if total_wealth > 180000:
+        if total_wealth > 150000:
             #print(f"Household {self.unique_id} starting collaboration")
             for neighbour in self.neighbours:
                 if neighbour.selected_measure == 'Collaborative project':
@@ -269,7 +269,7 @@ class Government(Agent):
         print("Total Non-adapted Households:", len(non_adapted_households))
 
         # Support households with subsidy
-        subsidy_amount = 15000  # Amount of subsidy for each household
+        subsidy_amount = 0  # Amount of subsidy for each household
         count = 3
 
         for household in non_adapted_households:
