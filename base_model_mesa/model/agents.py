@@ -19,11 +19,9 @@ class Households(Agent):
     """
     total_sandbags_purchased = 0
     SAND_BAG_LIMIT = 15
-    #total_electricity_purchased = 0
-    #electricity_limit = 15
     total_collaborated_households = 0
 
-     # Define available flood measures and their costs
+     # Available flood measures and their costs
     flood_measures = {
         'Sandbags': 15000,
         'Elevating the house': 19000,
@@ -52,6 +50,7 @@ class Households(Agent):
 
         #list of neighbouring households
         self.neighbours = []
+
         # Get the estimated flood depth at those coordinates. 
         # the estimated flood depth is calculated based on the flood map (i.e., past data) so this is not the actual flood depth
         # Flood depth can be negative if the location is at a high elevation
@@ -110,7 +109,7 @@ class Households(Agent):
                     self.flood_damage_estimated = 0
                 print(self.flood_damage_estimated)
             else:
-                # Use existing calculation
+                # Recalculate actual flood damage
                 self.flood_damage_estimated = calculate_basic_flood_damage(flood_depth=self.flood_depth_estimated)
 
 
@@ -127,13 +126,6 @@ class Households(Agent):
         print(f"Household {self.unique_id} received subsidy. New budget: {self.adaptation_budget}")
         self.select_flood_measure()
         print(f"Household {self.unique_id} adapted at step {self.model.schedule.steps}")
-
-    '''''
-    def re_evaluate_adaptation(self):
-        adaptation_threshold = 500000  # Define an appropriate threshold
-        if self.wealth >= adaptation_threshold and not self.is_adapted:
-            self.is_adapted = True
-    '''
 
     def calculate_damage_reduction_factor(self, measure):
         # Define how different measures reduce flood damage
@@ -159,7 +151,6 @@ class Households(Agent):
 
     def collaborate_on_adaptation(self):
         """Collaborate with neighbours on flood adaptation measures."""
-        #print(f"Household {self.unique_id} checking collaboration, Neighbours: {len(self.neighbours)}")
         collaborated_households = 0
 
         total_wealth = self.wealth
@@ -169,12 +160,11 @@ class Households(Agent):
             for neighbour in self.neighbours:
                 # Calculate combined wealth for cost-sharing
                 total_wealth += neighbour.wealth
-                #print(f"Neighbour {neighbour.unique_id} wealth: {neighbour.wealth}")
 
         print(f"Total combined wealth for Household {self.unique_id}: {total_wealth}")
         
-        # Example: Jointly decide to elevate homes if combined wealth is high
-        if total_wealth > 200000:
+        # If joint wealth is above threshold, households can collaborate
+        if total_wealth > 150000:
             #print(f"Household {self.unique_id} starting collaboration")
             for neighbour in self.neighbours:
                 if neighbour.selected_measure == 'Collaborative project':
@@ -186,7 +176,6 @@ class Households(Agent):
         print("Collaborated Households:", collaborated_households) 
 
     def update_collaboration_status(self):
-        #print(f"Household {self.unique_id} updating collaboration status")
         if self.selected_measure == 'Collaborative project':
             self.flood_damage_estimated -= 0.8
             if self.flood_damage_estimated < 0:
@@ -195,27 +184,15 @@ class Households(Agent):
 
 
     def step(self):
-        # Logic for adaptation based on estimated flood damage and a random chance.
-        # These conditions are examples and should be refined for real-world applications.
          # Re-evaluate adaptation status every step
-        #self.is_adapted = False  # Reset adaptation status
         self.collaborate_on_adaptation()
         self.select_flood_measure()
-        # Define a threshold for considering a household adapted
+
+        # Threshold for considering a household adapted
         minimum_damage_threshold = 0.1
-        adaptation_threshold = 0.15 # Example
 
         if self.flood_damage_estimated < minimum_damage_threshold:
                 self.is_adapted = True  # Agent adapts to flooding
-        """""
-        else:
-        # Check if a flood measure is selected and effective
-            if self.selected_measure:
-                damage_reduction = self.calculate_damage_reduction_factor(self.selected_measure)
-                #if damage_reduction >= adaptation_threshold:
-                self.is_adapted = True
-        # print(self.is_adapted)
-        """
    
 # Define the Government agent class
 class Government(Agent):
@@ -226,6 +203,7 @@ class Government(Agent):
         super().__init__(unique_id, model)
         self.subsidy_budget = 150000 # Total subsidy budget available
 
+    """""
     def protesting(self,):
 
         non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
@@ -239,24 +217,15 @@ class Government(Agent):
                 collaboration = True
                 return collaboration
             print("Household collaboration is", collaboration)
-        """""
-    def protesting_subsidy(self):
-        if self.protesting is True:
-            self.subsidy_budget *= 2
-            return self.subsidy_budget
-        print("subsidy doubled")
-        """""
+    """ 
 
     def step(self):
-        #self.protesting_subsidy()
         # Check if the current step is a multiple of 4
         if self.model.schedule.steps % 4 == 0 and self.model.schedule.steps is not 0:
-            print("Government step method called.")  # Debug print
             self.support_non_adapted_households()
         
     def support_non_adapted_households(self):
       
-        print("Supporting non-adapted households.")  # Debug print
         if self.subsidy_budget <= 1:
             return  # Exit if no subsidy budget is left
         # List to store non-adapted households
@@ -269,7 +238,7 @@ class Government(Agent):
         print("Total Non-adapted Households:", len(non_adapted_households))
 
         # Support households with subsidy
-        subsidy_amount = 25000 # Amount of subsidy for each household
+        subsidy_amount = 15000 # Amount of subsidy for each household
         count = 3
 
         for household in non_adapted_households:
