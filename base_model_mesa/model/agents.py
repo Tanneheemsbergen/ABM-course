@@ -174,7 +174,7 @@ class Households(Agent):
         print(f"Total combined wealth for Household {self.unique_id}: {total_wealth}")
         
         # Example: Jointly decide to elevate homes if combined wealth is high
-        if total_wealth > 150000:
+        if total_wealth > 200000:
             #print(f"Household {self.unique_id} starting collaboration")
             for neighbour in self.neighbours:
                 if neighbour.selected_measure == 'Collaborative project':
@@ -207,7 +207,7 @@ class Households(Agent):
 
         if self.flood_damage_estimated < minimum_damage_threshold:
                 self.is_adapted = True  # Agent adapts to flooding
-
+        """""
         else:
         # Check if a flood measure is selected and effective
             if self.selected_measure:
@@ -215,7 +215,7 @@ class Households(Agent):
                 #if damage_reduction >= adaptation_threshold:
                 self.is_adapted = True
         # print(self.is_adapted)
-
+        """
    
 # Define the Government agent class
 class Government(Agent):
@@ -224,7 +224,7 @@ class Government(Agent):
     """
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
-        self.subsidy_budget = 0 # Total subsidy budget available
+        self.subsidy_budget = 150000 # Total subsidy budget available
 
     def protesting(self,):
 
@@ -257,7 +257,7 @@ class Government(Agent):
     def support_non_adapted_households(self):
       
         print("Supporting non-adapted households.")  # Debug print
-        if self.subsidy_budget <= 0:
+        if self.subsidy_budget <= 1:
             return  # Exit if no subsidy budget is left
         # List to store non-adapted households
         non_adapted_households = [household for household in self.model.schedule.agents if isinstance(household, Households) and not household.is_adapted]
@@ -269,7 +269,7 @@ class Government(Agent):
         print("Total Non-adapted Households:", len(non_adapted_households))
 
         # Support households with subsidy
-        subsidy_amount = 0  # Amount of subsidy for each household
+        subsidy_amount = 25000 # Amount of subsidy for each household
         count = 3
 
         for household in non_adapted_households:
